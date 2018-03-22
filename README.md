@@ -1,8 +1,6 @@
 # Notes
 
 <br/>
-# Introduction
-
 
 This repository defined utilities for `ETMall` projects, and reference through `NuGet` packages.
 
