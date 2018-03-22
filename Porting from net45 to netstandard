@@ -1,0 +1,144 @@
+
+# Introduction
+
+This page describes steps to change target framework from `.NET Framework` to `.NET Standard`.
+
+# Prerequisites
+
+*  Visual Studio 2017 With  `.NET Core 2.x SDK`
+*  `.NET Core CLI`
+
+## Choose the implementation support for your library.
+
+| .NET Standard                             | [1.0] | [1.1]  | [1.2] | [1.3] | [1.4] | [1.5]      | [1.6]      | [2.0]      |
+|-------------------------------------------|-------|--------|-------|-------|-------|------------|------------|------------|
+| .NET Core                                 | 1.0   | 1.0    | 1.0   | 1.0   | 1.0   | 1.0        | 1.0        | 2.0        |
+| .NET Framework (with .NET Core 1.x SDK)   | 4.5   | 4.5    | 4.5.1 | 4.6   | 4.6.1 | 4.6.2      |            |            |
+| .NET Framework (with .NET Core 2.0 SDK)   | 4.5   | 4.5    | 4.5.1 | 4.6   | 4.6.1 | 4.6.1      | 4.6.1      | 4.6.1      |
+| Mono                                      | 4.6   | 4.6    | 4.6   | 4.6   | 4.6   | 4.6        | 4.6        | 5.4        |
+| Xamarin.iOS                               | 10.0  | 10.0   | 10.0  | 10.0  | 10.0  | 10.0       | 10.0       | 10.14      |
+| Xamarin.Mac                               | 3.0   | 3.0    | 3.0   | 3.0   | 3.0   | 3.0        | 3.0        | 3.8        |
+| Xamarin.Android                           | 7.0   | 7.0    | 7.0   | 7.0   | 7.0   | 7.0        | 7.0        | 8.0        |
+| Universal Windows Platform                | 10.0  | 10.0   | 10.0  | 10.0  | 10.0  | 10.0.16299 | 10.0.16299 | 10.0.16299 |
+| Windows                                   | 8.0   | 8.0    | 8.1   |       |       |            |            |            |
+| Windows Phone                             | 8.1   | 8.1    | 8.1   |       |       |            |            |            |
+| Windows Phone Silverlight                 | 8.0   |        |       |       |       |            |            |            |
+
+[1.0]: https://github.com/dotnet/standard/blob/master/docs/versions/netstandard1.0.md
+[1.1]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard1.1.md
+[1.2]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard1.2.md
+[1.3]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard1.3.md
+[1.4]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard1.4.md
+[1.5]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard1.5.md
+[1.6]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard1.6.md
+[2.0]: https://github.com/dotnet/standard/blob/master/docs//versions/netstandard2.0.md
+
+Make sure take look from [MSDN](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support).
+
+
+## Modified `.csproj` to new format.
+
+*  To porting it, simply get a brand new `csproj` by creating new `.NET Standard` by Visual Studio then replace the original one with it.
+
+![image](/uploads/6563b5deeff8534c1fc27b1e4f5cb89c/image.png)
+<br/>
+
+
+```diff
++<Project Sdk="Microsoft.NET.Sdk">
++
++  <PropertyGroup>
++    <TargetFramework>netstandard2.0</TargetFramework>
++  </PropertyGroup>
++
++</Project>
+```
+
+*  Migrate some necessary information from `.nuspec` to `.csproj`.
+
+`PackageId`, `Version`, `Authors`, `Company`...etc.
+
+
+```diff
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
++   <PackageId>ETMall.Common.DataAccess</PackageId>
+    <TargetFramework>netstandard2.0</TargetFramework>
++   <Version>2.1.0</Version>
++   <AssemblyVersion>2.1.0.0</AssemblyVersion>
++   <FileVersion>2.1.0.0</FileVersion>
++   <Authors>ETMall</Authors>
++   <Company>ETMall</Company>
++   <PackageIconUrl>http://nuget01.etzone.net/favicon.ico</PackageIconUrl>
++   <Copyright>Copyright ©2017 ETMall Corporation</Copyright>
++   <Description>DataAdapters for common useage.<Description/>
++   <PackageTags>etmall common dataaccess dblayer redis sqlserver oracle</PackageTags>
+  </PropertyGroup>
+
+</Project>
+
+```
+
+*  Set `TargetFramework` to mutipule with `TargetFrameworks`.
+
+
+```diff
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>ETMall.Common.DataAccess</PackageId>
+-   <TargetFramework>netstandard2.0</TargetFramework>
++   <TargetFrameworks Condition="'$(LibraryFrameworks)'==''">net45;netstandard2.0</TargetFrameworks>
++   <TargetFrameworks Condition="'$(LibraryFrameworks)'!=''">$(LibraryFrameworks)</TargetFrameworks>
+    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
+    <Authors>ETMall</Authors>
+    <Company>ETMall</Company>
+    <PackageIconUrl>http://nuget01.etzone.net/favicon.ico</PackageIconUrl>
+    <Copyright>Copyright ©2017 ETMall Corporation</Copyright>
+    <Description>DataAdapters for common useage.</Description>
+    <PackageTags>etmall common dataaccess dblayer redis sqlserver oracle</PackageTags>
+  </PropertyGroup>
+</Project>
+
+```
+
+*  Resolving dependencies with specified condition if necessary.
+
+```diff
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>ETMall.Common.DataAccess</PackageId>
+    <TargetFrameworks Condition="'$(LibraryFrameworks)'==''">net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(LibraryFrameworks)'!=''">$(LibraryFrameworks)</TargetFrameworks>
+    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
+    <Authors>ETMall</Authors>
+    <Company>ETMall</Company>
+    <PackageIconUrl>http://nuget01.etzone.net/favicon.ico</PackageIconUrl>
+    <Copyright>Copyright ©2017 ETMall Corporation</Copyright>
+    <Description>DataAdapters for common useage.<Description/>
+    <PackageTags>etmall common dataaccess dblayer redis sqlserver oracle</PackageTags>
+  </PropertyGroup>
+  
++ <ItemGroup>
++   <PackageReference Include="{Package}" Version="6.2.2" />
++ </ItemGroup>
++ <ItemGroup Condition="'$(TargetFramework)'=='net45'">
++   <PackageReference Include="Dapper" Version="1.50.2" />
++   <PackageReference Include="StackExchange.Redis Version="1.0.488" />
++   <Reference Include="System.Transactions" Version="4.0.0" />
++ </ItemGroup>
++ <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
++   <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
++   <PackageReference Include="StackExchange.Redis Version="1.1.605" />
++   <PackageReference Include="Dapper" Version="1.50.4" /> 
++ </ItemGroup> 
+
+ 
+</Project>
+
+```
+
